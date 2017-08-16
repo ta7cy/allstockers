@@ -12,9 +12,11 @@ class Stock: Object{
 
     dynamic var id = 0
     
-    dynamic var type = ""
+    dynamic var type = 99
     
     dynamic var stockid = ""
+    
+    dynamic var stockname = ""
     
     dynamic var getprice = 0
 
@@ -32,5 +34,11 @@ class Stock: Object{
     
     dynamic var pricedate = NSDate()
 
+    /**
+     id をプライマリーキーとして設定
+     */
+    override static func primaryKey() -> String? {
+        return "id"
+    }
 
 }

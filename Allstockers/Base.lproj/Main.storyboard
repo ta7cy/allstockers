@@ -258,6 +258,9 @@
                                 <state key="normal" title="登録">
                                     <color key="titleColor" red="0.98457985316629926" green="0.97744828292756458" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
+                                <connections>
+                                    <action selector="FixButtonAction:" destination="zsd-FF-biP" eventType="touchUpInside" id="fsu-G5-q92"/>
+                                </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="取得数" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RS9-jf-Xph">
                                 <rect key="frame" x="36" y="232" width="150" height="30"/>
