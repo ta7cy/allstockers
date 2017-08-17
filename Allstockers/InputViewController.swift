@@ -105,50 +105,142 @@ class InputViewController: UIViewController {
     //登録ボタンを押した時のアクション
     @IBAction func FixButtonAction(_ sender: Any) {
         
-        //DBに登録する
-        try! realm.write {
+        self.stock.type = type
+        self.stock.stockid = self.holdFormTextField1.text!
+        print("Debug_stock.id",stock.id)
+        
+        switch type{
+        case 0: // hold
             
-            self.stock.type = type
-            self.stock.stockid = self.holdFormTextField1.text!
-            print("Debug_stock.id")
-            print(stock.id)
+             print("type 0")
+             self.savePrice(code: self.holdFormTextField1.text!)
             
-            switch type{
-            case 0: // hold
-                print("type 0")
-                self.stock.getprice = Int(self.priceTextField.text!)!
-                self.stock.numofhold = Int(self.numberOfHoldTextField.text!)!
-                
-                let queue = DispatchQueue(label: "test")
-                
-                queue.sync {
-                    getPrice(code: "6049")
-                }
-                print("stock.latestprice is",self.stock.latestprice)
-
-            case 1: // sale
-                print("type1")
+        case 1: // sale
+            
+            print("type1")
+            
+            try! realm.write {
                 self.stock.getprice = Int(self.priceTextField.text!)!
                 self.stock.numofhold = Int(self.numberOfHoldTextField.text!)!
                 self.stock.numofsale = Int(self.numberOfSaleTextField.text!)!
-
-            case 2: // dividend
-                print("type2")
+                self.realm.add(self.stock, update: true)
+            }
+            //close
+            self.navigationController?.popViewController(animated: true)
+            
+        case 2: // dividend
+            
+            print("type2")
+            
+            try! realm.write {
+                
                 self.stock.dividend = Int(self.dividendTextField.text!)!
+                self.realm.add(self.stock, update: true)
+            }
+            //close
+            self.navigationController?.popViewController(animated: true)
+            
+        default:
+            print(type)
+            //close
+            self.navigationController?.popViewController(animated: true)
+            
+        }
+        
+        
+
+    }
+    
+    func savePrice(code: String){
+        
+        //let code = "6049"
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+        let url = URL(string:"https://www.google.com/finance/getprices?q=" + code + "&i=300&p=60m&f=d,c")
+    
+        let task = session.dataTask(with: url!){ (data, response, error) in
+            if (error == nil){
+                print("noerror")
+                let pricerawdata = String(data: data!, encoding: .utf8)!
+                print(pricerawdata)
+                let dataArray = pricerawdata.components(separatedBy: "\n")
+                print(dataArray)
+                let dataArray2 = dataArray[dataArray.count-2].components(separatedBy: ",")
+                print(dataArray2)
                 
+                let result:Int = Int(dataArray2.last!)!
+                print("result:",result)
                 
-            default:
-                print(type)
+                self.stock.latestprice = result
+                print("stock.latestprice:",self.stock.latestprice)
+                
+                DispatchQueue.main.async {
+                    
+                    try! self.realm.write {
+                        
+                        self.stock.getprice = Int(self.priceTextField.text!)!
+                        self.stock.numofhold = Int(self.numberOfHoldTextField.text!)!
+                        self.realm.add(self.stock, update: true)
+                    }
+                    //close
+                    self.navigationController?.popViewController(animated: true)
+                }
+                
+            } else{
+                
+                print("error")
+                self.navigationController?.popViewController(animated: true)
                 
             }
             
-            //self.realm.add(self.stock, update: true)
         }
-        
-        //close
-        self.navigationController?.popViewController(animated: true)
-        
+        task.resume()
+    
     }
+    
+    
+    /*
+    func getPrice(code: String) -> Bool {
+     
+        var flag : Bool = false
+     
+        print(code)
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config)
+        let url = URL(string:"https://www.google.com/finance/getprices?q=" + code + "&i=300&p=60m&f=d,c")
+        
+        
+        
+        let task = session.dataTask(with: url!){ (data, response, error) in
+            if (error == nil){
+                print("noerror")
+                let pricerawdata = String(data: data!, encoding: .utf8)!
+                print(pricerawdata)
+                let dataArray = pricerawdata.components(separatedBy: "\n")
+                print(dataArray)
+                let dataArray2 = dataArray[dataArray.count-2].components(separatedBy: ",")
+                print(dataArray2)
+                
+                let result:Int = Int(dataArray2.last!)!
+                print("result:",result)
+                
+                self.stock.latestprice = result
+                print("stock.latestprice:",self.stock.latestprice)
+                
+                
+            } else{
+                
+                print("error")
+                flag = false
+                
+            }
+            
+        }
+        task.resume()
+        
+        return flag
+    }
+*/
     
     
     
@@ -232,39 +324,6 @@ class InputViewController: UIViewController {
         
     }
     
-    func getPrice(code: String){
-        
-        print(code)
-        let config = URLSessionConfiguration.default
-        let session = URLSession(configuration: config)
-        let url = URL(string:"https://www.google.com/finance/getprices?q=" + code + "&i=300&p=60m&f=d,c")
-        
-        let task = session.dataTask(with: url!){ (data, response, error) in
-            if (error == nil){
-                print("noerror")
-                let pricerawdata = String(data: data!, encoding: .utf8)!
-                print(pricerawdata)
-                let dataArray = pricerawdata.components(separatedBy: "\n")
-                print(dataArray)
-                let dataArray2 = dataArray[dataArray.count-2].components(separatedBy: ",")
-                print(dataArray2)
-                
-                let result:Int = Int(dataArray2.last!)!
-                print("result:",result)
-                
-                self.stock.latestprice = result
-                print("stock.latestprice:",self.stock.latestprice)
-                
-                
-            } else{
-            
-                print("error")
-            
-            }
-            
-        }
-        task.resume()
-    }
     
     
 }

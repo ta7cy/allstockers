@@ -12,9 +12,38 @@ import RealmSwift
 class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDataSource  {
 
     @IBOutlet weak var tableView: UITableView!
+    var type = 0
     
     let realm = try! Realm()
-    var stockArray = try! Realm().objects(Stock.self)
+    var stockArray = try! Realm().objects(Stock.self).filter("type == 0")
+    
+    @IBAction func segmentButton(_ sender: UISegmentedControl) {
+ 
+        
+        switch sender.selectedSegmentIndex {
+        case 0:
+            type = 0
+            print("select 所有株")
+            
+        case 1:
+            type = 1
+            print("select 売却済")
+            
+        case 2:
+            type = 2
+            print("select 配当")
+            
+        default:
+            print("選択なし")
+
+        }
+        stockArray = try! Realm().objects(Stock.self).filter("type == " + String(type))
+        tableView.reloadData()
+        
+    }
+    
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,10 +72,34 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // 再利用可能な cell を得る
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        
         let stock = stockArray[indexPath.row]
-        cell.textLabel?.text = stock.stockid
-        cell.detailTextLabel?.text = String(stock.latestprice)
+        
+        var title = ""
+        var subTitle = ""
+        var profits = 0
+        
+        switch type {
+        case 0:
+            profits = (stock.latestprice - stock.getprice) * stock.numofhold
+            title = stock.stockid + "------/収益" + String(profits)
+            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + String(stock.numofhold) + "/現在価格" + String(stock.latestprice)
+
+        case 1:
+            profits = 0
+            title = stock.stockid + "/売却収益"
+            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + "/売却単価" + "非課税"
+           
+        case 2:
+            title = stock.stockid + "------/配当益" + String(stock.dividend)
+            subTitle = ""
+            
+        default:
+            print("xxx")
+        }
+        
+
+        cell.textLabel?.text = title
+        cell.detailTextLabel?.text = subTitle
         
         return cell
     }
@@ -76,6 +129,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
     }
     
+    //inputへの遷移
     override func prepare(for segue: UIStoryboardSegue, sender: Any?){
         let inputViewController:InputViewController = segue.destination as! InputViewController
         
