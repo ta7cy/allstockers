@@ -10,9 +10,14 @@ import UIKit
 import RealmSwift
 
 class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDataSource  {
+    
+    @IBOutlet weak var submitLabel: UILabel!
 
+    let dateFormat = DateFormatter()
     @IBOutlet weak var tableView: UITableView!
     var type = 0
+    var sum = 0
+    var sumText = "所有株収支"
     
     let realm = try! Realm()
     var stockArray = try! Realm().objects(Stock.self).filter("type == 0")
@@ -23,14 +28,17 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         switch sender.selectedSegmentIndex {
         case 0:
             type = 0
+            sumText = "所有株収支"
             print("select 所有株")
             
         case 1:
             type = 1
+            sumText = "売却益"
             print("select 売却済")
             
         case 2:
             type = 2
+            sumText = "配当収益"
             print("select 配当")
             
         default:
@@ -38,6 +46,20 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         }
         stockArray = try! Realm().objects(Stock.self).filter("type == " + String(type))
+        
+        switch type {
+        case 0:
+           sum = self.getprofits(type: type) ?? 0
+        case 1:
+            sum = self.getprofits(type: type) ?? 0
+        case 2:
+            sum = self.getprofits(type: type) ?? 0
+            
+        default:
+            print("defa")
+        }
+        
+        submitLabel.text = sumText + String(sum)
         tableView.reloadData()
         
     }
@@ -51,6 +73,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        dateFormat.dateFormat = "yyyy年MM月dd日"
+        submitLabel.text = sumText + String(self.getprofits(type: 0) ?? 0)
         
     }
     
@@ -77,21 +102,23 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var title = ""
         var subTitle = ""
         var profits = 0
+        var tax : Float = 1.0
         
         switch type {
         case 0:
             profits = (stock.latestprice - stock.getprice) * stock.numofhold
-            title = stock.stockid + "------/収益" + String(profits)
-            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + String(stock.numofhold) + "/現在価格" + String(stock.latestprice)
-
+            title = stock.stockname + stock.stockid + "/収益:" + String(profits)
+            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + String(stock.numofhold) + "/現在価格" + String(stock.latestprice) + "/取得日時" + dateFormat.string(from: stock.getdate)
+            
         case 1:
-            profits = 0
-            title = stock.stockid + "/売却収益"
-            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + "/売却単価" + "非課税"
+            if stock.tax == 0 { tax = 1 - 0.20315 }
+            profits = Int( Float(stock.numofsale - stock.getprice) * Float(stock.numofhold) * tax)
+            title = stock.stockname + stock.stockid + "/売却収益:" + String(profits)
+            subTitle = "取得単価:" + String(stock.getprice) + "/取得数" + String(stock.numofhold) + "/売却単価" + String(stock.numofsale) + "/売却日時" + dateFormat.string(from: stock.saledate)
            
         case 2:
-            title = stock.stockid + "------/配当益" + String(stock.dividend)
-            subTitle = ""
+            title = stock.stockname + stock.stockid + "/配当益：" + String(stock.dividend)
+            subTitle = "取得日時" + dateFormat.string(from: stock.dividenddate)
             
         default:
             print("xxx")
@@ -147,6 +174,43 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
             inputViewController.stock = stock
         }
     }
-
+    
+    func getprofits(type:Int) -> Int? {
+        
+        var sum = 0
+        var tax = 1.0
+    
+        switch type {
+        case 0:
+            print("0")
+            for stock in stockArray{
+                sum += (stock.latestprice - stock.getprice) * stock.numofhold
+            }
+        case 1:
+            print("1")
+            for stock in stockArray{
+                
+                if(stock.tax == 0){
+                    tax = 1.0 - 0.20315
+                } else{
+                    tax = 1.0
+                }
+                sum += Int(Double(stock.numofsale - stock.getprice) * Double(stock.numofhold) * tax)
+                
+            }
+        case 2:
+            print("2")
+            for stock in stockArray{
+                sum += stock.dividend
+            }
+            
+            
+        default:
+            print("0")
+        }
+    
+        return sum
+    }
+    
 }
 

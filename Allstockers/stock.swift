@@ -22,17 +22,23 @@ class Stock: Object{
 
     dynamic var numofhold = 0
     
-    dynamic var numofsale = 0
+    dynamic var getdate = Date()
     
-    dynamic var tax = true
+    dynamic var numofsale = 0 // 売却価格
+    
+    dynamic var saledate = Date()
+    
+    dynamic var tax = 0
     
     dynamic var dividend = 0
+    
+    dynamic var dividenddate = Date()
 
     dynamic var latestprice = 0
     
-    dynamic var regidate = NSDate()
+    dynamic var regidate = Date()
     
-    dynamic var pricedate = NSDate()
+    dynamic var pricedate = Date()
 
     /**
      id をプライマリーキーとして設定
